@@ -1,4 +1,4 @@
-// Copyright 2018 The Clspv Authors. All rights reserved.
+// Copyright 2023 The Clspv Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,35 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CLSPV_INCLUDE_CLSPV_ARG_KIND_H_
-#define CLSPV_INCLUDE_CLSPV_ARG_KIND_H_
+#include "SamplerUtils.h"
 
-#include <string>
+using namespace llvm;
 
 namespace clspv {
 
-enum class ArgKind : int {
-  Buffer,
-  BufferUBO,
-  Local,
-  Pod,
-  PodUBO,
-  PodPushConstant,
-  SampledImage,
-  StorageImage,
-  Sampler,
-  PointerUBO,
-  PointerPushConstant,
-  StorageTexelBuffer,
-  UniformTexelBuffer,
-};
+Value *NormalizedCoordinate(Module &M, IRBuilder<> &B, Value *Coord, Value *Img,
+                            Type *ImgTy) {
+  auto getImageSizesFct = M.getOrInsertFunction(
+      "clspv.get_image_sizes",
+      FunctionType::get(Coord->getType(), {ImgTy}, false));
+  Value *ImgSizes = B.CreateCall(getImageSizesFct, {Img});
 
-// Converts an ArgKind to its string name.
-const char *GetArgKindName(ArgKind);
-
-// Converts a string into its ArgKind.
-ArgKind GetArgKindFromName(const std::string &);
+  return B.CreateFDiv(Coord, ImgSizes);
+}
 
 } // namespace clspv
-
-#endif // CLSPV_INCLUDE_CLSPV_ARG_KIND_H_
