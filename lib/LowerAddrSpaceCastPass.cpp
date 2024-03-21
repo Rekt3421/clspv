@@ -345,7 +345,6 @@ llvm::Value *clspv::LowerAddrSpaceCastPass::visitPHINode(llvm::PHINode &phi) {
   llvm::Type *phi_type  = nullptr;
   llvm::PHINode *new_phi = nullptr;
 
-  // 2. Iterate over incoming values and basic blocks
   for (unsigned i = 0; i < phi.getNumIncomingValues(); ++i) {
     llvm::Value *IncomingVal = visit(phi.getIncomingValue(i));
     if(phi_type == nullptr) {
