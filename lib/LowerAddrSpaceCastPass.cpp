@@ -339,6 +339,25 @@ Value *clspv::LowerAddrSpaceCastPass::visitPtrToIntInst(PtrToIntInst &I) {
   return ptrToInt;
 }
 
+
+llvm::Value *clspv::LowerAddrSpaceCastPass::visitPHINode(llvm::PHINode &phi) {
+  IRBuilder<> B(&phi);
+  llvm::Type *phi_type  = nullptr;
+  llvm::PHINode *new_phi = nullptr;
+
+  // 2. Iterate over incoming values and basic blocks
+  for (unsigned i = 0; i < phi.getNumIncomingValues(); ++i) {
+    llvm::Value *IncomingVal = visit(phi.getIncomingValue(i));
+    if(phi_type == nullptr) {
+      phi_type = IncomingVal->getType();
+      new_phi = B.CreatePHI(phi_type, phi.getNumIncomingValues());
+    }
+    llvm::BasicBlock *IncomingBlock = phi.getIncomingBlock(i);
+    new_phi->addIncoming(IncomingVal, IncomingBlock);
+    }
+    registerReplacement(&phi, new_phi);
+}
+
 Value *clspv::LowerAddrSpaceCastPass::visitInstruction(Instruction &I) {
 #ifndef NDEBUG
   dbgs() << "Instruction not handled: " << I << '\n';
